@@ -1,28 +1,32 @@
 import { useEffect, useState } from "react";
-import { execSQL, querySQL } from "../db/dbClient";
+import { execSQL, querySQL } from "../lib/db";
 
-const initialForm = {
-  name: "",
-  age: "",
-  gender: "",
-  phone: "",
-  address: "",
-  consent: false,
-};
-
-export default function RegisterPatientForm() {
-  const [form, setForm] = useState(initialForm);
-  const [message, setMessage] = useState("");
+const RegisterPatientForm = () => {
+  const [form, setForm] = useState({
+    name: "",
+    age: "",
+    gender: "",
+    phone: "",
+    address: "",
+    consent: false,
+  });
   const [patients, setPatients] = useState([]);
+  const [error, setError] = useState("");
+
+  const fetchPatients = async () => {
+    try {
+      const result = await querySQL("SELECT * FROM patients ORDER BY created_at DESC;");
+      setPatients(result?.rows || []);
+      setError("");
+    } catch (err) {
+      setError(err.message);
+      setPatients([]);
+    }
+  };
 
   useEffect(() => {
     fetchPatients();
   }, []);
-
-  async function fetchPatients() {
-    const result = await querySQL("SELECT * FROM patients ORDER BY created_at DESC;");
-    setPatients(result.rows || []);
-  }
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -34,114 +38,60 @@ export default function RegisterPatientForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
-
-    const { name, phone, consent } = form;
-    if (!name || !phone || !consent) {
-      setMessage("❗ Name, phone and consent are required.");
-      return;
-    }
-
     try {
       await execSQL(
         `INSERT INTO patients (name, age, gender, phone, address, consent) VALUES (?, ?, ?, ?, ?, ?)`,
-        [
-          form.name,
-          parseInt(form.age) || null,
-          form.gender || null,
-          form.phone,
-          form.address || null,
-          form.consent,
-        ]
+        [form.name, Number(form.age), form.gender, form.phone, form.address, form.consent]
       );
-
-      setMessage("✅ Patient registered!");
-      setForm(initialForm);
-      fetchPatients();
+      setForm({
+        name: "",
+        age: "",
+        gender: "",
+        phone: "",
+        address: "",
+        consent: false,
+      });
+      await fetchPatients();
     } catch (err) {
-      console.error(err);
-      setMessage("❌ Something went wrong.");
+      setError(err.message);
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-8 p-6 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-semibold mb-4">Register New Patient</h2>
-
-      {message && <div className="mb-2 text-sm text-red-600">{message}</div>}
-
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <input
-          className="w-full border p-2 rounded"
-          name="name"
-          value={form.name}
-          placeholder="Full Name"
-          onChange={handleChange}
-        />
-        <input
-          className="w-full border p-2 rounded"
-          name="age"
-          type="number"
-          value={form.age}
-          placeholder="Age"
-          onChange={handleChange}
-        />
-        <select
-          className="w-full border p-2 rounded"
-          name="gender"
-          value={form.gender}
-          onChange={handleChange}
-        >
+    <div className="max-w-xl mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">🩺 Register Patient</h1>
+      <form onSubmit={handleSubmit} className="space-y-2">
+        <input name="name" placeholder="Full Name" value={form.name} onChange={handleChange} className="w-full p-2 border rounded" required />
+        <input name="age" placeholder="Age" value={form.age} onChange={handleChange} className="w-full p-2 border rounded" required />
+        <select name="gender" value={form.gender} onChange={handleChange} className="w-full p-2 border rounded" required>
           <option value="">Select Gender</option>
-          <option>Male</option>
-          <option>Female</option>
-          <option>Other</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
         </select>
-        <input
-          className="w-full border p-2 rounded"
-          name="phone"
-          value={form.phone}
-          placeholder="Phone Number"
-          onChange={handleChange}
-        />
-        <textarea
-          className="w-full border p-2 rounded"
-          name="address"
-          value={form.address}
-          placeholder="Address"
-          onChange={handleChange}
-        />
-        <label className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            name="consent"
-            checked={form.consent}
-            onChange={handleChange}
-          />
+        <input name="phone" placeholder="Phone Number" value={form.phone} onChange={handleChange} className="w-full p-2 border rounded" required />
+        <input name="address" placeholder="Address" value={form.address} onChange={handleChange} className="w-full p-2 border rounded" />
+        <label className="flex items-center gap-2">
+          <input type="checkbox" name="consent" checked={form.consent} onChange={handleChange} />
           <span>I consent to store my information</span>
         </label>
-
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-        >
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
           Register Patient
         </button>
       </form>
 
-      {patients.length > 0 && (
-        <div className="mt-6">
-          <h3 className="font-medium mb-2">Registered Patients:</h3>
-          <ul className="space-y-1 text-sm">
-            {patients.map((p) => (
-              <li key={p.id} className="p-2 bg-gray-100 rounded">
-                <strong>{p.name}</strong> ({p.phone}) – {p.gender || "N/A"},{" "}
-                {p.age || "?"} yrs
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {error && <p className="text-red-500 mt-4">❌ {error}</p>}
+
+      <h2 className="text-xl font-semibold mt-6 mb-2">📋 Registered Patients</h2>
+      <ul className="space-y-1">
+        {patients.map((p) => (
+          <li key={p.id} className="border p-2 rounded bg-white">
+            {p.name} • {p.age} • {p.gender}
+          </li>
+        ))}
+      </ul>
     </div>
   );
-}
+};
+
+export default RegisterPatientForm;

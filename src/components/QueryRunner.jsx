@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { querySQL } from "../db/dbClient";
+import { execSQL, querySQL } from "../lib/db";
 
 export default function QueryRunner() {
   const [query, setQuery] = useState("SELECT * FROM patients;");
@@ -10,6 +10,7 @@ export default function QueryRunner() {
     try {
       setError("");
       const result = await querySQL(query);
+      console.log("✅ Patient inserted");
       setResults(result.rows || []);
     } catch (err) {
       setResults([]);
