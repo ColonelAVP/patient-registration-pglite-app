@@ -3,6 +3,7 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './styles/index.css';
 import RegisterPatientForm from "./components/RegisterPatientForm";
+import QueryRunner from "./components/QueryRunner";
 
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
     <>
       <div className="text-2xl text-blue-600 font-bold">
         <RegisterPatientForm />
+        <QueryRunner/>
       </div>
     </>
   )
