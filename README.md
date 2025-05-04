@@ -43,27 +43,30 @@ This is a frontend-only patient registration app that uses [`@electric-sql/pglit
 
 5. Open the app at http://localhost:5173
 
+---
 
-🧪 Components
+## 🧪 Components
 RegisterPatientForm.jsx — Handles patient registration and listing.
 
 QueryRunner.jsx — Allows manual SQL queries with result table rendering.
 
 lib/db.js — Singleton wrapper around PGlite (non-WebWorker).
 
-⚠️ Known Issue with PGlite
+### ⚠️ Known Issue with PGlite
 ❌ unnamed prepared statement does not exist
 
 This error arises due to a regression in PGlite's internal prepared statement caching logic.
 
-⚠️ Details:
+### ⚠️ Details:
 Happens during repeated SQL query attempts (especially after page reload).
 
 Even if the schema is correct, PGlite’s auto-prepared statements become stale.
 
 Root cause: stale reference to internal WASM memory after IndexedDB reload.
 
-🔁 Workarounds Tried:
+---
+
+### 🔁 Workarounds Tried:
 Switching to main-thread DB execution
 
 Changing DB instance names
@@ -72,23 +75,33 @@ Clearing IndexedDB
 
 Downgrading PGlite (older versions not published on npm)
 
-💡 Resolution:
+
+---
+
+### 💡 Resolution:
 This version is left intentionally to fulfill assignment requirements using PGlite.
 A separate sqljs branch contains the same app using sql.js for full stability.
 
+---
+
 🛠 Tech Stack
-React + Vite
+* React + Vite
 
-Tailwind CSS
+* Tailwind CSS
 
-PGlite (@electric-sql/pglite)
+* PGlite (@electric-sql/pglite)
 
-IndexedDB (via idb:// protocol)
+* IndexedDB (via idb:// protocol)
 
-📂 Branches
+---
+
+## 📂 Branches
+```
 Branch	Description
 pglite	As per assignment, built using @electric-sql/pglite
-sqljs	Stable fallback using sql.js with same UI/UX
+sqljs	   Stable fallback using sql.js with same UI/UX
+```
+---
 
-📧 Contact
+## 📧 Contact
 If you need clarification on any part of the implementation or the bug, feel free to reach out.
