@@ -1,62 +1,67 @@
-import initSqlJs from 'sql.js';
+import initSqlJs from "sql.js";
+import localforage from "localforage";
 
-let db;
-
-const SCHEMA = `
-  CREATE TABLE IF NOT EXISTS patients (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    age INTEGER,
-    gender TEXT,
-    phone TEXT,
-    address TEXT,
-    consent INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  );
-`;
+let dbInstance;
 
 export async function initDB() {
-  if (db) return db;
+  if (dbInstance) return dbInstance;
 
-  const SQL = await initSqlJs({ locateFile: file => `https://sql.js.org/dist/${file}` });
-  const saved = localStorage.getItem('patient-db');
+  const SQL = await initSqlJs({
+    locateFile: (file) => `https://sql.js.org/dist/${file}`,
+  });
 
-  db = saved ? new SQL.Database(Uint8Array.from(atob(saved), c => c.charCodeAt(0))) : new SQL.Database();
-  db.run(SCHEMA);
+  const savedDb = await localforage.getItem("patient-db");
 
-  return db;
+  dbInstance = savedDb ? new SQL.Database(savedDb) : new SQL.Database();
+
+  // Create patients table if not exists
+  dbInstance.run(`
+    CREATE TABLE IF NOT EXISTS patients (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      age INTEGER,
+      gender TEXT,
+      phone TEXT,
+      address TEXT,
+      consent INTEGER,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // Sync if another tab updated the DB
+  window.addEventListener("storage", async (event) => {
+    if (event.key === "patient-db-update") {
+      const updated = await localforage.getItem("patient-db");
+      if (updated) {
+        dbInstance = new SQL.Database(updated);
+      }
+    }
+  });
+
+  return dbInstance;
 }
 
-export async function insertPatient(data) {
+export async function insertPatient(patient) {
   const db = await initDB();
   const stmt = db.prepare(`
     INSERT INTO patients (name, age, gender, phone, address, consent)
-    VALUES (?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?);
   `);
   stmt.run([
-    data.name,
-    parseInt(data.age),
-    data.gender,
-    data.phone,
-    data.address,
-    data.consent ? 1 : 0,
+    patient.name,
+    Number(patient.age),
+    patient.gender,
+    patient.phone,
+    patient.address,
+    patient.consent ? 1 : 0,
   ]);
   stmt.free();
-  persistDB();
+
+  await localforage.setItem("patient-db", db.export());
+  localStorage.setItem("patient-db-update", Date.now()); // Sync other tabs
 }
 
-export async function runQuery(query) {
+export async function runQuery(sql) {
   const db = await initDB();
-  try {
-    const result = db.exec(query);
-    return result[0] || { columns: [], values: [] };
-  } catch (err) {
-    throw new Error(err.message);
-  }
-}
-
-function persistDB() {
-  const data = db.export();
-  const base64 = btoa(String.fromCharCode(...data));
-  localStorage.setItem('patient-db', base64);
+  return db.exec(sql)[0] || { columns: [], values: [] };
 }

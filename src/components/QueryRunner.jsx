@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { querySQL } from "../lib/db";
+import { runQuery } from "../db/database";
 
 const QueryRunner = () => {
   const [query, setQuery] = useState("SELECT * FROM patients;");
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
 
-  const runQuery = async () => {
+  const handleQuery = async () => {
     try {
-      const res = await querySQL(query);
+      const res = await runQuery(query);
       setResult(res);
       setError("");
     } catch (err) {
@@ -18,35 +18,42 @@ const QueryRunner = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-10 p-4 border-t pt-6">
-      <h2 className="text-xl font-bold mb-2">🧪 SQL Query Runner</h2>
+    <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6 mt-10">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">🧪 SQL Query Runner</h2>
       <textarea
-        rows="3"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="w-full border p-2 rounded mb-2"
+        rows="4"
+        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
-      <button onClick={runQuery} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+      <button
+        onClick={handleQuery}
+        className="mt-3 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+      >
         Run Query
       </button>
 
-      {error && <p className="text-red-500 mt-3">❌ {error}</p>}
+      {error && <p className="text-red-500 mt-4">❌ {error}</p>}
 
-      {result && result.rows?.length > 0 && (
-        <div className="mt-4 overflow-x-auto">
+      {result && result.columns?.length > 0 && (
+        <div className="overflow-x-auto mt-6">
           <table className="table-auto w-full border">
-            <thead>
-              <tr className="bg-gray-100">
-                {Object.keys(result.rows[0]).map((key) => (
-                  <th key={key} className="border px-2 py-1 text-left">{key}</th>
+            <thead className="bg-gray-100">
+              <tr>
+                {result.columns.map((col) => (
+                  <th key={col} className="border px-3 py-2 text-left">
+                    {col}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {result.rows.map((row, idx) => (
+              {result.values.map((row, idx) => (
                 <tr key={idx} className="odd:bg-white even:bg-gray-50">
-                  {Object.values(row).map((val, i) => (
-                    <td key={i} className="border px-2 py-1">{String(val)}</td>
+                  {row.map((cell, i) => (
+                    <td key={i} className="border px-3 py-2">
+                      {String(cell)}
+                    </td>
                   ))}
                 </tr>
               ))}
