@@ -6,10 +6,15 @@ This is a frontend-only patient registration app that uses [`@electric-sql/pglit
 
 ## ✅ Features
 
-- Register new patients via form
-- Query patient records using raw SQL
-- Data persists across page refreshes (via IndexedDB)
-- Supports multiple open browser tabs
+* Register new patients via a form
+* View and query patient records using raw SQL
+* Export patient data as CSV or FHIR JSON bundle
+* Generate individual patient summary PDFs
+* Real-time analytics dashboard with age distribution, gender split, and registration trends
+* Interactive appointment scheduler linked to patient records
+* Data persists across page refreshes (IndexedDB via localForage)
+* Multi-tab synchronization
+* Progressive Web App: offline support, installable, with service worker caching
 
 ---
 
@@ -21,87 +26,66 @@ This is a frontend-only patient registration app that uses [`@electric-sql/pglit
    git clone https://github.com/<your-username>/patient-registration-pglite-app.git
    cd patient-registration-pglite-app
    ```
+2. Checkout the `pglite` branch:
 
-2. Checkout the pglite branch:
-
-    ```bash
-    git checkout pglite
-    ```
-
+   ```bash
+   git checkout pglite
+   ```
 3. Install dependencies:
 
-    ```bash
-    npm install
-    ```
-
+   ```bash
+   npm install
+   ```
 4. Run the development server:
 
-    ```bash
-    npm run dev
-
-    ```
-
-5. Open the app at http://localhost:5173
+   ```bash
+   npm run dev
+   ```
+5. Open the app at [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## 🧪 Components
-RegisterPatientForm.jsx — Handles patient registration and listing.
+## ⚠️ Known Issue with PGlite
 
-QueryRunner.jsx — Allows manual SQL queries with result table rendering.
+**`Unnamed prepared statement does not exist`**
 
-lib/db.js — Singleton wrapper around PGlite (non-WebWorker).
+This error arises due to a regression in PGlite's internal prepared-statement caching logic. Symptoms include failures on repeated query executions, especially after page reload. The root cause is stale references to internal WASM memory after IndexedDB reload.
 
-### ⚠️ Known Issue with PGlite
-❌ unnamed prepared statement does not exist
+### Workarounds Tried
 
-This error arises due to a regression in PGlite's internal prepared statement caching logic.
+* Switching to main-thread database execution
+* Clearing IndexedDB
+* Downgrading PGlite (older versions unpublished on npm)
 
-### ⚠️ Details:
-Happens during repeated SQL query attempts (especially after page reload).
-
-Even if the schema is correct, PGlite’s auto-prepared statements become stale.
-
-Root cause: stale reference to internal WASM memory after IndexedDB reload.
+> **Resolution:** This branch is left intentionally using PGlite for assignment requirements. A `sqljs` branch uses `sql.js` for full stability.
 
 ---
 
-### 🔁 Workarounds Tried:
-Switching to main-thread DB execution
+## 🛠 Tech Stack
 
-Changing DB instance names
-
-Clearing IndexedDB
-
-Downgrading PGlite (older versions not published on npm)
-
-
----
-
-### 💡 Resolution:
-This version is left intentionally to fulfill assignment requirements using PGlite.
-A separate sqljs branch contains the same app using sql.js for full stability.
-
----
-
-🛠 Tech Stack
 * React + Vite
-
 * Tailwind CSS
-
-* PGlite (@electric-sql/pglite)
-
-* IndexedDB (via idb:// protocol)
+* PGlite (`@electric-sql/pglite`)
+* IndexedDB via `localforage`
+* React Router
+* Recharts for charts
+* jsPDF + html2canvas for PDF export
+* react-big-calendar for scheduling
 
 ---
 
 ## 📂 Branches
-```
-Branch	Description
-pglite	As per assignment, built using @electric-sql/pglite
-sqljs	   Stable fallback using sql.js with same UI/UX
-```
+
+| Branch | Description                                         |
+| ------ | --------------------------------------------------- |
+| pglite | Assignment version using PGlite                     |
+| sqljs  | Stable fallback using `sql.js` with identical UI/UX |
+
 ---
 
-## 📧 Contact
-If you need clarification on any part of the implementation or the bug, feel free to reach out.
+## 🔗 Contact
+
+For questions or clarifications about implementation or the PGlite issue, reach out to Atherv at `athervpatil05@gmail.com`.
+
+**Author:** Atherv
+**Date:** May 2025
