@@ -1,63 +1,68 @@
-# 🩺 Patient Registration App (PGlite Version)
+# 🩺 Patient Registration App (SQLite Version)
 
-This is a frontend-only patient registration app that uses [`@electric-sql/pglite`](https://github.com/electric-sql/pglite) for browser-based data storage.
+This branch (`sqljs`) provides a stable, frontend-only patient registration app using [`sql.js`](https://github.com/sql-js/sql.js) for browser-based SQLite storage.
 
 ---
 
-## ✅ Features
+## ✅ Features (SQLite Branch)
 
-* Register new patients via a form
-* View and query patient records using raw SQL
-* Export patient data as CSV or FHIR JSON bundle
-* Generate individual patient summary PDFs
-* Real-time analytics dashboard with age distribution, gender split, and registration trends
-* Interactive appointment scheduler linked to patient records
-* Data persists across page refreshes (IndexedDB via localForage)
-* Multi-tab synchronization
-* Progressive Web App: offline support, installable, with service worker caching
+* **Patient Registration**: Create and list patient records with first/last name, age, gender, phone, address, and consent.
+* **SQL Runner**: Run raw SQL queries against the SQLite database with history, pagination, and CSV export.
+* **Analytics Dashboard**: Real-time KPIs and visualizations for age distribution, gender split, and registration trends using Recharts.
+* **Appointment Scheduler**: Interactive calendar (react-big-calendar) linked to patient records for follow-up bookings.
+* **Data Persistence**: Database stored in IndexedDB via `localForage`, survives page reloads and supports multi-tab sync.
+* **PDF Export**: Generate patient summary PDFs using jsPDF + html2canvas.
+* **CSV & FHIR JSON Export**: Export patient data as CSV or interoperable FHIR JSON bundles.
+* **Dark Mode**: Toggleable light/dark theme with cross-tab preference sync.
+* **PWA Support**: Offline-first caching and installable as a Progressive Web App.
 
 ---
 
 ## 🚀 Setup Instructions
 
-1. Clone the repo:
+1. **Clone the repository**:
 
    ```bash
    git clone https://github.com/<your-username>/patient-registration-pglite-app.git
    cd patient-registration-pglite-app
    ```
-2. Checkout the `pglite` branch:
+2. **Switch to the `sqljs` branch**:
 
    ```bash
-   git checkout pglite
+   git checkout sqljs
    ```
-3. Install dependencies:
+3. **Install dependencies**:
 
    ```bash
    npm install
    ```
-4. Run the development server:
+4. **Run the development server**:
 
    ```bash
    npm run dev
    ```
-5. Open the app at [http://localhost:5173](http://localhost:5173)
+5. **Open in browser** at [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## ⚠️ Known Issue with PGlite
+## 📂 Branches
 
-**`Unnamed prepared statement does not exist`**
+| Branch   | Description                                              |
+| -------- | -------------------------------------------------------- |
+| `pglite` | Uses `@electric-sql/pglite` (WASM-based SQLite)          |
+| `sqljs`  | Uses `sql.js` (Emscripten-compiled SQLite) for stability |
 
-This error arises due to a regression in PGlite's internal prepared-statement caching logic. Symptoms include failures on repeated query executions, especially after page reload. The root cause is stale references to internal WASM memory after IndexedDB reload.
+---
 
-### Workarounds Tried
+## ⚙️ Switching Between Branches
 
-* Switching to main-thread database execution
-* Clearing IndexedDB
-* Downgrading PGlite (older versions unpublished on npm)
+If you encounter issues with PGlite (missing prepared-statement bug), use the SQLite branch:
 
-> **Resolution:** This branch is left intentionally using PGlite for assignment requirements. A `sqljs` branch uses `sql.js` for full stability.
+```bash
+git checkout sqljs
+npm install
+npm run dev
+```
 
 ---
 
@@ -65,27 +70,18 @@ This error arises due to a regression in PGlite's internal prepared-statement ca
 
 * React + Vite
 * Tailwind CSS
-* PGlite (`@electric-sql/pglite`)
-* IndexedDB via `localforage`
-* React Router
-* Recharts for charts
-* jsPDF + html2canvas for PDF export
+* sql.js for browser SQLite
+* localForage (IndexedDB) for persistence
+* React Router for navigation
+* Recharts for analytics
+* jsPDF + html2canvas for PDF exports
 * react-big-calendar for scheduling
-
----
-
-## 📂 Branches
-
-| Branch | Description                                         |
-| ------ | --------------------------------------------------- |
-| pglite | Assignment version using PGlite                     |
-| sqljs  | Stable fallback using `sql.js` with identical UI/UX |
 
 ---
 
 ## 🔗 Contact
 
-For questions or clarifications about implementation or the PGlite issue, reach out to Atherv at `athervpatil05@gmail.com`.
+Questions or feedback? Contact Atherv at `athervpatil05@gmail.com`.
 
 **Author:** Atherv
 **Date:** May 2025
